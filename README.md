@@ -31,7 +31,7 @@ To run these experiments, follow these steps:
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/your-username/your-repo.git
+   git clone https://github.com/vtocitu365/tensorflow_template.git
    ```
 
 2. Open and run the Jupyter notebooks (`*.ipynb`) in your preferred environment.
