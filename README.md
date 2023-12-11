@@ -27,6 +27,7 @@ This Git repository comprises multiple Jupyter notebooks showcasing a diverse se
 ## 2. DistilBERT Fine-tuning
 
 ### **Fine-tuning DistilBERT on Quora Similarity Dataset:**
+   - **File:** `quora_classification.ipynb`
    - Utilizes Hugging Face's DistilBERT model for fine-tuning on the Quora Similarity Dataset. The notebook demonstrates how pre-trained transformer models can be adapted for specific tasks through fine-tuning.
 
 ## Getting Started
