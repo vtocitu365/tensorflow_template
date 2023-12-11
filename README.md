@@ -5,18 +5,23 @@ This Git repository comprises multiple Jupyter notebooks showcasing a diverse se
 ## 1. TensorFlow Experiments
 
 ### a. **Image Classification with TensorFlow:**
+   - **File:** `tensorflow_image.ipynb`
    - This notebook employs TensorFlow for image classification tasks on various datasets, including CIFAR10, CIFAR100, Eurosat, and MNIST. Different architectures such as CNN, ResNet, and VGG16 are utilized for enhanced performance.
 
 ### b. **Variational Autoencoder with TensorFlow:**
+   - **File:** `tensorflow_image.ipynb`
    - Demonstrates the implementation and training of a Variational Autoencoder (VAE) using TensorFlow. The notebook illustrates the generation of new data points from the learned latent space.
 
 ### c. **LSTM Network for IMDB Reviews with Interpretability:**
+   - **File:** `tensorflow_nlp.ipynb`
    - Implements an LSTM network for sentiment analysis on IMDB reviews using TensorFlow. Additionally, interpretability techniques like LIME TextExplainer, SHAP, and DICE counterfactuals are applied to gain insights into the model's predictions.
 
 ### d. **Timeseries Regression Model:**
+   - **File:** `tensorflow_timeseries.ipynb`
    - Introduces a timeseries regression model using TensorFlow. The notebook demonstrates how TensorFlow can be employed for predicting continuous values in a timeseries setting.
 
 ### e. **Building Networks from Scratch:**
+   - **File:** `tensorflow_basics.ipynb`
    - This code file includes the construction of various neural networks from scratch. One of the networks is dedicated to training a CNN without utilizing TensorFlow or PyTorch, providing insights into the fundamentals of neural network implementation.
 
 ## 2. DistilBERT Fine-tuning
