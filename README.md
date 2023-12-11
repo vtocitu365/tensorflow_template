@@ -17,7 +17,7 @@ This Git repository comprises multiple Jupyter notebooks showcasing a diverse se
    - Implements an LSTM network for sentiment analysis on IMDB reviews using TensorFlow. Additionally, interpretability techniques like LIME TextExplainer, SHAP, and DICE counterfactuals are applied to gain insights into the model's predictions.
 
 ### d. **Timeseries Regression Model:**
-   - **File:** `tensorflow_timeseries.ipynb`
+   - **File:** `tensorflow_timeseries_regression.ipynb`
    - Introduces a timeseries regression model using TensorFlow. The notebook demonstrates how TensorFlow can be employed for predicting continuous values in a timeseries setting.
 
 ### e. **Building Networks from Scratch:**
