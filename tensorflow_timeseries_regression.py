@@ -5,6 +5,9 @@
 
 # In[33]:
 
+import ssl
+import certifi
+ssl._create_default_https_context = lambda: ssl.create_default_context(cafile=certifi.where())
 
 from tensorflow.keras.layers import *
 from tensorflow.keras.models import *
@@ -312,7 +315,12 @@ zip_path = tf.keras.utils.get_file(
     origin='https://storage.googleapis.com/tensorflow/tf-keras-datasets/jena_climate_2009_2016.csv.zip',
     fname='jena_climate_2009_2016.csv.zip',
     extract=True)
-csv_path, _ = os.path.splitext(zip_path) #We load the dataset in a csv_file
+# On macOS the zip extracts to a folder, so we need to find the CSV inside it
+extracted = os.path.splitext(zip_path)[0]
+if os.path.isdir(extracted):
+    csv_path = os.path.join(extracted, 'jena_climate_2009_2016.csv')
+else:
+    csv_path = extracted
 
 
 
@@ -540,10 +548,10 @@ import tensorflow_datasets as tfds
 # Basic ANN
 class EarlyStoppingCallback(tf.keras.callbacks.Callback):
 
-    def on_epoch_end(self,epoch, logs=None):
-        if logs['accuracy'] >0.90:
-            print("Accuracy greater than 90%. Stopping Training.")
-            self.model.stop_training=True
+    def on_epoch_end(self, epoch, logs=None):
+        if logs['val_loss'] < 0.54:
+            print("Val loss threshold reached. Stopping.")
+            self.model.stop_training = True
 
 def val_dnn_model(epochs, X_train, Y_train, X_val, Y_val, callbacks=None):
     model = tf.keras.models.Sequential([
@@ -581,11 +589,11 @@ from sklearn.model_selection import train_test_split
 def vtoc_regression_model(norm, model_type):
     if model_type=='linear':
         model = Sequential()
-        model.add(norm())
+        model.add(norm)
         model.add(Dense(1))
     else:
         model = Sequential()
-        model.add(norm())
+        model.add(norm)
         model.add(Dense(64, activation='relu'))
         model.add(Dense(64, activation='relu'))
         model.add(Dense(1))
@@ -605,7 +613,7 @@ def eval_regression_data(dataset, target):
     X_train, X_test, Y_train, Y_test = train_test_split(X,Y, test_size=0.3)
     horsepower = np.array(X_train['Horsepower']).astype('float32')
 
-    horsepower_normalizer = Normalization(input_shape=[1,], axis=None)
+    horsepower_normalizer = Normalization(axis=None)
     horsepower_normalizer.adapt(horsepower)
 
     linear_model=vtoc_regression_model(horsepower_normalizer, model_type='linear')
@@ -627,5 +635,3 @@ raw_dataset = pd.read_csv(url, names=column_names,
                           sep=' ', skipinitialspace=True)
 eval_regression_data(raw_dataset, 'MPG')
 
-
-# In[ ]:
