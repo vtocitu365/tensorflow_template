@@ -19,6 +19,9 @@ import lime
 from lime.lime_text import LimeTextExplainer
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
+import ssl
+import certifi
+ssl._create_default_https_context = lambda: ssl.create_default_context(cafile=certifi.where())
 
 # Load the IMDb dataset
 (train_data, train_labels), (test_data, test_labels) = keras.datasets.imdb.load_data(num_words=10000)

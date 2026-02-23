@@ -5,6 +5,9 @@
 
 # In[33]:
 
+import ssl
+import certifi
+ssl._create_default_https_context = lambda: ssl.create_default_context(cafile=certifi.where())
 
 from tensorflow.keras.layers import *
 from tensorflow.keras.models import *
@@ -312,7 +315,12 @@ zip_path = tf.keras.utils.get_file(
     origin='https://storage.googleapis.com/tensorflow/tf-keras-datasets/jena_climate_2009_2016.csv.zip',
     fname='jena_climate_2009_2016.csv.zip',
     extract=True)
-csv_path, _ = os.path.splitext(zip_path) #We load the dataset in a csv_file
+# On macOS the zip extracts to a folder, so we need to find the CSV inside it
+extracted = os.path.splitext(zip_path)[0]
+if os.path.isdir(extracted):
+    csv_path = os.path.join(extracted, 'jena_climate_2009_2016.csv')
+else:
+    csv_path = extracted
 
 
 
@@ -540,10 +548,10 @@ import tensorflow_datasets as tfds
 # Basic ANN
 class EarlyStoppingCallback(tf.keras.callbacks.Callback):
 
-    def on_epoch_end(self,epoch, logs=None):
-        if logs['accuracy'] >0.90:
-            print("Accuracy greater than 90%. Stopping Training.")
-            self.model.stop_training=True
+    def on_epoch_end(self, epoch, logs=None):
+        if logs['val_loss'] < 0.54:
+            print("Val loss threshold reached. Stopping.")
+            self.model.stop_training = True
 
 def val_dnn_model(epochs, X_train, Y_train, X_val, Y_val, callbacks=None):
     model = tf.keras.models.Sequential([
@@ -581,16 +589,16 @@ from sklearn.model_selection import train_test_split
 def vtoc_regression_model(norm, model_type):
     if model_type=='linear':
         model = Sequential()
-        model.add(norm())
+        model.add(norm)
         model.add(Dense(1))
     else:
         model = Sequential()
-        model.add(norm())
+        model.add(norm)
         model.add(Dense(64, activation='relu'))
         model.add(Dense(64, activation='relu'))
         model.add(Dense(1))
 
-    model.compile(optimizer=tf.optimizers.Adam(learning_rate=0.1), loss='mean_absolute_error')
+    model.compile(optimizer=tf.optimizers.Adam(learning_rate=0.01), loss='mean_absolute_error')
 
     return model
 
@@ -603,15 +611,23 @@ def eval_regression_data(dataset, target):
     Y=dataset[target]
     X=dataset.loc[:, dataset.columns != target]
     X_train, X_test, Y_train, Y_test = train_test_split(X,Y, test_size=0.3)
-    horsepower = np.array(X_train['Horsepower']).astype('float32')
+    horsepower = np.array(X_train['Horsepower']).astype('float32').reshape(-1, 1)
 
-    horsepower_normalizer = Normalization(input_shape=[1,], axis=None)
+    horsepower_normalizer = Normalization(axis=-1)
     horsepower_normalizer.adapt(horsepower)
 
     linear_model=vtoc_regression_model(horsepower_normalizer, model_type='linear')
-    horsepower_test = np.array(X_test['Horsepower']).astype('float32')
-    history = linear_model.fit(horsepower, Y_train, validation_data=(horsepower_test, Y_test), epochs=100, verbose=2)
-    test_results = linear_model.predict(horsepower_test)
+    horsepower_test = np.array(X_test['Horsepower']).astype('float32').reshape(-1, 1)
+
+    # Scale Y so loss is in a sensible range
+    y_mean = Y_train.mean()
+    y_std = Y_train.std()
+    Y_train_scaled = (Y_train - y_mean) / y_std
+    Y_test_scaled = (Y_test - y_mean) / y_std
+
+    early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
+    history = linear_model.fit(horsepower, Y_train_scaled, validation_data=(horsepower_test, Y_test_scaled), epochs=100, verbose=2, callbacks=[early_stopping])
+    test_results = linear_model.predict(horsepower_test) * y_std + y_mean  # unscale predictions
     return test_results
 
 

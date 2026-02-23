@@ -30,6 +30,9 @@ from tensorflow.keras.models import *
 from tensorflow.keras.optimizers import *
 from tensorflow.keras.callbacks import ReduceLROnPlateau
 from tensorflow.keras import Model, Input
+import ssl
+import certifi
+ssl._create_default_https_context = lambda: ssl.create_default_context(cafile=certifi.where())
 
 def get_available_devices():
     local_device_protos = device_lib.list_local_devices()
