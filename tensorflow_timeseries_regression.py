@@ -598,7 +598,7 @@ def vtoc_regression_model(norm, model_type):
         model.add(Dense(64, activation='relu'))
         model.add(Dense(1))
 
-    model.compile(optimizer=tf.optimizers.Adam(learning_rate=0.1), loss='mean_absolute_error')
+    model.compile(optimizer=tf.optimizers.Adam(learning_rate=0.01), loss='mean_absolute_error')
 
     return model
 
@@ -611,15 +611,23 @@ def eval_regression_data(dataset, target):
     Y=dataset[target]
     X=dataset.loc[:, dataset.columns != target]
     X_train, X_test, Y_train, Y_test = train_test_split(X,Y, test_size=0.3)
-    horsepower = np.array(X_train['Horsepower']).astype('float32')
+    horsepower = np.array(X_train['Horsepower']).astype('float32').reshape(-1, 1)
 
-    horsepower_normalizer = Normalization(axis=None)
+    horsepower_normalizer = Normalization(axis=-1)
     horsepower_normalizer.adapt(horsepower)
 
     linear_model=vtoc_regression_model(horsepower_normalizer, model_type='linear')
-    horsepower_test = np.array(X_test['Horsepower']).astype('float32')
-    history = linear_model.fit(horsepower, Y_train, validation_data=(horsepower_test, Y_test), epochs=100, verbose=2)
-    test_results = linear_model.predict(horsepower_test)
+    horsepower_test = np.array(X_test['Horsepower']).astype('float32').reshape(-1, 1)
+
+    # Scale Y so loss is in a sensible range
+    y_mean = Y_train.mean()
+    y_std = Y_train.std()
+    Y_train_scaled = (Y_train - y_mean) / y_std
+    Y_test_scaled = (Y_test - y_mean) / y_std
+
+    early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
+    history = linear_model.fit(horsepower, Y_train_scaled, validation_data=(horsepower_test, Y_test_scaled), epochs=100, verbose=2, callbacks=[early_stopping])
+    test_results = linear_model.predict(horsepower_test) * y_std + y_mean  # unscale predictions
     return test_results
 
 
@@ -635,3 +643,5 @@ raw_dataset = pd.read_csv(url, names=column_names,
                           sep=' ', skipinitialspace=True)
 eval_regression_data(raw_dataset, 'MPG')
 
+
+# In[ ]:
